@@ -1,11 +1,11 @@
 import './App.css';
 import axios from "axios";
 import { styled } from '@mui/material/styles';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import {TextField, Typography, Box, Button, Paper,Radio, FormControlLabel} from '@mui/material';
 import { useState } from 'react';
-import Dropdown from 'react-bootstrap/Dropdown';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import { useForm } from "react-hook-form";
 
 const StyledButton = styled(Button)(({theme}) => ({
@@ -31,25 +31,58 @@ const StyledForm = styled(Box)(({ theme }) => ({
 	},
 }));
 
+const filterOptions = createFilterOptions({
+  matchFrom: 'start',
+  stringify: (option: FilmOptionType) => option.title,
+});
+
+interface FilmOptionType {
+  title: string;
+  year: number;
+}
+
 function App() {
 
   const [firstname,setFirstname] = useState("");
   const [lastname,setLastname] = useState("");
+  const [gander,setGander] = useState("");
+  const [designation,setDesignation] = useState("");
+  const [date,setDate] = useState("");
 
   const registerForm = () => {
     axios.post("http://localhost:5000/login", {
       firstname: firstname,
       lastname: lastname,
+      gander: gander,
+      designation: designation,
+      date: date,
 }).then((response) => {
         console.log(response);
      });
    };
 
+   const user = () => {
+    axios.post("http://localhost:5000/user", {
+      
+}).then((response) => {
+        console.log(response);
+     });
+   };
+
+  
+
   const [value, setValue]= useState('');
   const { register, handleSubmit, formState: { errors } } = useForm();
   const onSubmit = (data) => console.log(data);
 
-  
+  const top100Films = [
+    { title: 'Developer', year: 1994 },
+    { title: 'Desginer', year: 1972 },
+    { title: 'Team Lead', year: 1974 },
+    { title: 'Manger', year: 2008 },
+    { title: 'Tester', year: 1957 },
+    { title: "Devopes", year: 1993 },
+  ];
 
   return (
     <div className="App">
@@ -85,31 +118,29 @@ function App() {
                 />
       { errors.pwd && <p className="text-error">{ 'Last Name Required.'}</p> }
                       <Typography sx={{fontSize:'small', paddingTop:'5px'}} >Gander</Typography>      
-        <FormControlLabel value="male" control={<Radio />} label="Male" />
-        <FormControlLabel value="female" control={<Radio />} label="Female" />
-        <FormControlLabel value="other" control={<Radio />} label="Other" />   
-            
+        <FormControlLabel value="male" control={<Radio />} label="Male" onChange={(e) =>{setGander(e.target.value);}} />
+        <FormControlLabel value="female" control={<Radio />} label="Female" onChange={(e) =>{setGander(e.target.value);}} />
         <>
-      <Dropdown>
-        <Dropdown.Toggle id="dropdown-button-dark-example1" variant="secondary">Desgination</Dropdown.Toggle>
-            <Dropdown.Menu variant="dark">
-              <Dropdown.Item href="#/action-1" active>Developer</Dropdown.Item>
-              <Dropdown.Item href="#/action-3">Team Leader</Dropdown.Item>
-              <Dropdown.Item href="#/action-2">Desginer</Dropdown.Item>
-              <Dropdown.Item href="#/action-3">Tester</Dropdown.Item>
-            </Dropdown.Menu>
-      </Dropdown>
+        <Autocomplete
+            id="filter-demo"
+            options={top100Films}
+            getOptionLabel={(option) => option.title}
+            filterOptions={filterOptions}
+            sx={{ width: '100%' }}
+            renderInput={(params) => <TextField {...params} label="Designation" />}
+            onChange={(e) =>{setDesignation(e.target.value);}}
+        />
     </>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                        <DatePicker
-                          label="Date"
-                          value={value}
-                          onChange={(newValue) => {
-                            setValue(newValue);
-                          }}
-                          renderInput={(params) => <TextField {...params} />}
-                        />
-              </LocalizationProvider>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DatePicker
+          label="Date"
+          value={value}
+          onChange={(newValue) => {
+            setValue(newValue);
+          }}
+          renderInput={(params) => <TextField {...params} />}
+      />
+    </LocalizationProvider>
               <StyledButton type="submit" variant="outlined" onClick={registerForm}>Register</StyledButton>
                 </StyledForm></form></Item>
       </header>
